@@ -68,9 +68,11 @@ SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'book_worms.pipelines.BookWormsPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'book_worms.pipelines.BookWormsPipeline': 300,
+    'book_worms.pipelines.FileWritePipeline': 400
+}
+
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html

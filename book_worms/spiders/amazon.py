@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import re
+
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 
@@ -12,8 +14,12 @@ class AmazonSpider(CrawlSpider):
     """
     start_urls = ['https://www.amazon.com/b/ref=s9_acss_bw_cg_BHPJAN_1c1_w?node=8192263011&pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-2&pf_rd_r=FR7SMMBC7C9SWA46989S&pf_rd_t=101&pf_rd_p=d4740385-a7ba-4621-95a2-c96f66a01084&pf_rd_i=283155']
 
+    blacklists = (
+        "https://www.amazon.com/gp/*",
+
+        )
     rules = [
-        Rule(LinkExtractor(allow=('.*')), follow=True, callback="parse_items")
+        Rule(LinkExtractor(allow=('.*'), deny= blacklists), follow=True, callback="parse_items")
     ]
 
     def parse_items(self, response):
@@ -22,14 +28,58 @@ class AmazonSpider(CrawlSpider):
             item = BookWormsItem()
             print "#" * 100
             print response.url
-            print response.selector.xpath('//title/text()').extract()[0]
-            item['title'] = response.selector.xpath('//span[@id="productTitle"]/text()').extract()[0]
-            item['authors'] = response.selector.xpath('//a[contains(@class, "contributorNameID")]/text()').extract()[0]
+            item['url'] = response.url
+            item['title'] = response.selector.xpath('//h1[@id="title"]/span[1]/text()').extract()[0]
+            authors = response.selector.xpath('//a[contains(@class, "contributorNameID")]/text()')
+            if len(authors) > 0:
+                authors = authors.extract()
+            else:
+                authors = response.selector.xpath('//span[contains(@class, "author")]/a/text()').extract()
 
-            categories = response.selector.xpath('//li/span/a[contains(@class,"a-color-tertiary")]/text()')
+            item['authors'] = authors
+
             genres = []
+
+            unwanted_categories = ["Kindle"]
+
+            categories = response.selector.xpath('//div[@id= "wayfinding-breadcrumbs_feature_div"]/ul/li/span/a/text()').extract()
             for category in categories:
-                category.extract().strip()
+                category = category.strip()
+                add_flag = True
+                for unwanted_category in unwanted_categories:
+                    if unwanted_category in category:
+                        add_flag = False
+                        break
+
+                if add_flag:
+                    genres.append(category)
+
             item['genres'] = genres
-            print item
-            print "#" * 100
+
+            product_description_field = response.selector.xpath('//table[@id="productDetailsTable"]/tr/td/div/ul/li/b/text()').extract()
+            product_description_value = response.selector.xpath('//table[@id="productDetailsTable"]/tr/td/div/ul/li/text()').extract()
+
+            if "Paperback:" in product_description_field:
+                index = product_description_field.index("Paperback:")
+                item['pages'] = product_description_value[index].split()[0]
+            elif "Print Length:" in product_description_field:
+                index = product_description_field.index("Print Length:")
+                item['pages'] = product_description_value[index].split()[0]
+
+            if "Publisher:" in product_description_field:
+                index = product_description_field.index("Publisher:")
+                value = product_description_value[index]
+
+                if ";" in value:
+                    scolon_index = value.index(";")
+                    item['publisher'] = value[:scolon_index]
+                elif "(" in value:
+                    b_index = value.index("(")
+
+                    item['publisher'] = value[:b_index]
+
+                item['year'] = re.search(r'\((.*?)\)', value).group(1)
+
+            # print item
+            # print "#" * 100
+            return item

@@ -13,5 +13,8 @@ class BookWormsItem(scrapy.Item):
     authors = scrapy.Field()
     year = scrapy.Field()
     genres = scrapy.Field()
+    pages = scrapy.Field()
+    publisher = scrapy.Field()
+    url = scrapy.Field()
 
 
