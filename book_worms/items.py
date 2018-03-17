@@ -16,5 +16,8 @@ class BookWormsItem(scrapy.Item):
     pages = scrapy.Field()
     publisher = scrapy.Field()
     url = scrapy.Field()
+    isbn = scrapy.Field()
+    isbn13 = scrapy.Field()
+    language = scrapy.Field()
 
 
