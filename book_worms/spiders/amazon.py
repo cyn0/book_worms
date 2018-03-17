@@ -12,7 +12,10 @@ class AmazonSpider(CrawlSpider):
     """
     1. 100 Books to Read in a Lifetime
     """
-    start_urls = ['https://www.amazon.com/b/ref=s9_acss_bw_cg_BHPJAN_1c1_w?node=8192263011&pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-2&pf_rd_r=FR7SMMBC7C9SWA46989S&pf_rd_t=101&pf_rd_p=d4740385-a7ba-4621-95a2-c96f66a01084&pf_rd_i=283155']
+    start_urls = [
+        'https://www.amazon.com/b/ref=s9_acss_bw_cg_BOTY17_4d1_w/ref=s9_acss_bw_cg_KCedit_10d1_w?node=17276804011',
+        'https://www.amazon.com/b/ref=s9_acss_bw_cg_BHPJAN_1c1_w?node=8192263011&pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-2&pf_rd_r=FR7SMMBC7C9SWA46989S&pf_rd_t=101&pf_rd_p=d4740385-a7ba-4621-95a2-c96f66a01084&pf_rd_i=283155'
+    ]
 
     blacklists = (
         "https://www.amazon.com/gp/*",
@@ -78,8 +81,27 @@ class AmazonSpider(CrawlSpider):
 
                     item['publisher'] = value[:b_index]
 
+                item['publisher'] = item['publisher'].replace("  ", " ")
                 item['year'] = re.search(r'\((.*?)\)', value).group(1)
 
-            # print item
-            # print "#" * 100
-            return item
+            if "Language:" in product_description_field:
+                index = product_description_field.index("Language:")
+                value = product_description_value[index]
+
+                item['language'] = value
+
+            if "ISBN-10:" in product_description_field:
+                index = product_description_field.index("ISBN-10:")
+                value = product_description_value[index]
+
+                item['ISBN'] = value
+
+            if "ISBN-13:" in product_description_field:
+                index = product_description_field.index("ISBN-13:")
+                value = product_description_value[index]
+
+                item['ISBN-13'] = value
+
+            print item
+            print "#" * 100
+            # return item

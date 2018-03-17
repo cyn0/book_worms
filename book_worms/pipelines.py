@@ -31,7 +31,7 @@ class FileWritePipeline(object):
         else:
             pass
 
-        fields = ['title', 'authors', 'genres', 'year', 'pages', 'publisher']
+        fields = ['title', 'authors', 'genres', 'year', 'pages', 'publisher', 'language', 'isbn', 'isbn-13']
 
         line = ''
         for field in fields:
