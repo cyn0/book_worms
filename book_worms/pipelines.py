@@ -14,7 +14,7 @@ class BookWormsPipeline(object):
             if isinstance(val, list):
                 processed_item[key] = [x.encode('UTF8').strip() for x in val]
             else:
-                processed_item[key] = str(val).strip()
+                processed_item[key] = val.encode('UTF8').strip()
 
         return processed_item
 
@@ -31,7 +31,7 @@ class FileWritePipeline(object):
         else:
             pass
 
-        fields = ['title', 'authors', 'genres', 'year', 'pages', 'publisher', 'language', 'isbn', 'isbn-13']
+        fields = ['title', 'authors', 'genres', 'year', 'pages', 'publisher', 'language', 'isbn', 'isbn13', 'url']
 
         line = ''
         for field in fields:
@@ -47,7 +47,6 @@ class FileWritePipeline(object):
 
         with open(file_name, 'a') as the_file:
             the_file.write(line)
-        print "done writing %s" % (line,)
         return item
 
     def remove_comma(self, item):
@@ -62,7 +61,7 @@ class FileWritePipeline(object):
                     tmp_list.append(p_item)
                 processed_item[key] = tmp_list
             else:
-                val = val.replace(",", " ")
+                val = val.replace(",", "")
                 processed_item[key] = val
 
         return processed_item
