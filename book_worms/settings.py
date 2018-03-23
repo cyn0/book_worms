@@ -9,7 +9,7 @@
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'book_worms'
+BOT_NAME = 'randome'
 
 SPIDER_MODULES = ['book_worms.spiders']
 NEWSPIDER_MODULE = 'book_worms.spiders'
@@ -26,7 +26,7 @@ SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 2
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -50,9 +50,11 @@ SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 # Enable or disable spider middlewares
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    'book_worms.middlewares.BookWormsSpiderMiddleware': 543,
-#}
+SPIDER_MIDDLEWARES = {
+'book_worms.random_user_agent.RotateUserAgentMiddleware' : 400,
+'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None
+   # 'book_worms.middlewares.BookWormsSpiderMiddleware': 543,
+}
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
@@ -72,7 +74,7 @@ ITEM_PIPELINES = {
     'book_worms.pipelines.BookWormsPipeline': 300,
     'book_worms.pipelines.FileWritePipeline': 400
 }
-
+DOWNLOAD_DELAY = 5
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
