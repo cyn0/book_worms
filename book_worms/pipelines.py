@@ -20,14 +20,16 @@ class BookWormsPipeline(object):
 
 class FileWritePipeline(object):
     def process_item(self, item, spider):
-        print item
-        print "#" * 100
 
         item = self.remove_comma(item)
         file_name = None
 
         if spider.name == 'amazon':
             file_name = "amazon.csv"
+
+        elif spider.name == 'goodreads':
+            file_name = "goodreads_1.csv"
+
         else:
             pass
 
@@ -57,11 +59,12 @@ class FileWritePipeline(object):
             if isinstance(val, list):
                 tmp_list = []
                 for list_item in val:
-                    p_item = list_item.replace(",", "")
+                    p_item = list_item.replace(",", ";")
                     tmp_list.append(p_item)
                 processed_item[key] = tmp_list
             else:
-                val = val.replace(",", "")
+                print(val)
+                val = val.replace(",", ";")
                 processed_item[key] = val
 
         return processed_item

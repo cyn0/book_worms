@@ -37,8 +37,8 @@ class AmazonSpider(CrawlSpider):
         book_title = response.selector.xpath('//div[contains(@id, "booksTitle")]')
         if book_title:
             item = BookWormsItem()
-            print "#" * 100
-            print response.url
+            #print "#" * 100
+            #print response.url
             item['url'] = response.url
             item['title'] = response.selector.xpath('//h1[@id="title"]/span[1]/text()').extract()[0]
             authors = response.selector.xpath('//a[contains(@class, "contributorNameID")]/text()')
@@ -114,8 +114,4 @@ class AmazonSpider(CrawlSpider):
             # print "#" * 100
             return item
         else:
-            print "~"*100
-            print "ignored"
-            print response.selector.xpath('//title/text()').extract()[0]
-            print response.url
-            print "~"*100
+            pass
