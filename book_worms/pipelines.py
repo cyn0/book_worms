@@ -26,8 +26,12 @@ class FileWritePipeline(object):
 
         if spider.name == 'bookdepository':
             file_name = "bookdepository.csv"
+
+        elif spider.name == 'goodreads':
+            file_name = "goodreads_1.csv"
+
         else:
-            file_name = 'bookdepository.csv'
+            raise Exception("Unknown Spider!")
 
         fields = ['title', 'authors', 'genres', 'year', 'pages', 'publisher', 'language', 'isbn', 'isbn13', 'url']
 
@@ -55,11 +59,11 @@ class FileWritePipeline(object):
             if isinstance(val, list):
                 tmp_list = []
                 for list_item in val:
-                    p_item = list_item.replace(",", "")
+                    p_item = list_item.replace(",", ";")
                     tmp_list.append(p_item)
                 processed_item[key] = tmp_list
             else:
-                val = val.replace(",", "")
+                val = val.replace(",", ";")
                 processed_item[key] = val
 
         return processed_item
