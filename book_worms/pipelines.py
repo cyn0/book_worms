@@ -6,6 +6,7 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from book_worms.items import BookWormsItem
 
+
 class BookWormsPipeline(object):
     def process_item(self, item, spider):
         processed_item = {}
@@ -18,20 +19,19 @@ class BookWormsPipeline(object):
 
         return processed_item
 
+
 class FileWritePipeline(object):
     def process_item(self, item, spider):
-
         item = self.remove_comma(item)
-        file_name = None
 
-        if spider.name == 'amazon':
-            file_name = "amazon.csv"
+        if spider.name == 'bookdepository':
+            file_name = "bookdepository.csv"
 
         elif spider.name == 'goodreads':
             file_name = "goodreads.csv"
 
         else:
-            pass
+            raise Exception("Unknown Spider!")
 
         fields = ['title', 'authors', 'genres', 'year', 'pages', 'publisher', 'language', 'isbn', 'isbn13', 'url']
 
@@ -39,7 +39,7 @@ class FileWritePipeline(object):
         for field in fields:
             value = item.get(field)
             if isinstance(value, list):
-                line += ";".join(value)
+                line += ":".join(value)
             else:
                 line += str(value)
 
