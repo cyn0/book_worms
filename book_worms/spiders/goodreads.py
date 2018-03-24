@@ -1,108 +1,98 @@
 # -*- coding: utf-8 -*-
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
-
 from book_worms.items import BookWormsItem
 
 class GoodReadSpider(CrawlSpider):
-    name = 'goodreads'
-    allowed_domains = ['goodreads.com']
-    """
-    1. 100 Books to Read in a Lifetime
-    """
-    start_urls = []
-    for i in range(81):
-        link = 'https://www.goodreads.com/list/show/7.Best_Books_of_the_21st_Century?page=' + str(i + 1)
-        start_urls.append(link)
+  name = 'goodreads'
+  allowed_domains = ['goodreads.com']
 
-    black = ("\*list\*", )
-    rules = [
-        Rule(LinkExtractor(allow=('.*'), deny = black), follow=True, callback="parse_items")
-    ]
+  start_urls = []
+  for i in range(12, 48):
+    link = 'https://www.goodreads.com/list/show/12362.All_Time_Favorite_Romance_Novels?page=' + str(i)
+    start_urls.append(link)
 
-    def parse_items(self, response):
-        book_title = response.selector.xpath('//div[contains(@id, "metacol")]')
-        #print("-----------------------------------------------------------------------")
-        #print()
+  black = ("\*list\*", )
+  rules = [
+    Rule(LinkExtractor(allow=('.*'), restrict_css=(".tableList td a.bookTitle[itemprop='url']"), deny = black), follow=True, callback="parse_items")
+  ]
 
-        if book_title:
-            item = BookWormsItem()
+  def parse_items(self, response):
+    book_title = response.selector.xpath('//div[contains(@id, "metacol")]')
 
-            #print response.selector.xpath('//div[@id = "metacol"]/text()').extract()[0]
-            #print()
+    if book_title:
+      item = BookWormsItem()
 
-            item['title'] = response.selector.xpath('//h1[@id = "bookTitle"]/text()').extract()[0].strip()
-            item['authors'] = response.selector.xpath('//div[@id = "bookAuthors"]/span[@itemprop = "author"]/a/span/text()').extract()
+      title = response.selector.xpath('//h1[@id = "bookTitle"]/text()').extract()
+      if title:
+        item['title'] = title[0].strip()
 
-            authors = item['authors']
-            new_authors = list()
-            for val in authors:
-                new_authors.append(val.strip())
-            item['authors'] = new_authors
+      authors = response.selector.xpath('//div[@id = "bookAuthors"]/span[@itemprop = "author"]/a/span/text()').extract()
+      new_authors = list()
+      for val in authors:
+        new_authors.append(val.strip())
+      item['authors'] = new_authors
+      pages = response.selector.xpath('//div[@id = "details"]/div/span[@itemprop = "numberOfPages"]/text()').extract()
+      if pages:
+        item['pages'] = pages[0].split()[0]
+      isbn = response.selector.xpath(
+          '//div[@id = "bookDataBox"]/div[contains(@class, "clearFloats")]/'
+          'div[contains(@class, "infoBoxRowItem")]/text()').extract()
+      if isbn:
+        item['isbn'] = isbn[1].strip()
+      isbn13 = response.selector.xpath(
+          '//div[@id = "bookDataBox"]/div[contains(@class, "clearFloats")]/'
+          'div[contains(@class, "infoBoxRowItem")]/span/span/text()').extract()
+      if isbn13:
+        item['isbn13'] = isbn13[0].strip()
+      language = response.selector.xpath('//div[@id = "bookDataBox"]/div[contains(@class, "clearFloats")]'
+                                                 '/div[contains(@class, "infoBoxRowItem")]/text()').extract()
+      if language and len(language) > 3:
+        item['language'] = language[3].strip()
 
-            #item['authorType'] = response.selector.xpath('//div[@id = "bookAuthors"]/span[@itemprop = "author"]/span/text()').extract()
+      publication = response.selector.xpath('//div[@id = "details"]/div[contains(@class, "row")]/'
+                                              'text()').extract()
 
-            item['pages'] = response.selector.xpath('//div[@id = "details"]/div/span[@itemprop = "numberOfPages"]/text()').extract()[0].split()[0]
+      splitted = []
+      for i in publication:
+        if 'Published' in i:
+          splitted = i.split('\n')
 
-            item['isbn'] = response.selector.xpath(
-                '//div[@id = "bookDataBox"]/div[contains(@class, "clearFloats")]/'
-                'div[contains(@class, "infoBoxRowItem")]/text()').extract()[1].strip()
+      s = ''
+      string_split = []
+      for i in splitted:
+        if 'by' in i:
+          string_split = i.strip().split(' ')
 
-            item['isbn13'] = response.selector.xpath(
-                '//div[@id = "bookDataBox"]/div[contains(@class, "clearFloats")]/'
-                'div[contains(@class, "infoBoxRowItem")]/span/span/text()').extract()[0].strip()
+      for i in string_split:
+        if not 'by' in i:
+          s = s + i + ' '
 
-            item['language'] = response.selector.xpath('//div[@id = "bookDataBox"]/div[contains(@class, "clearFloats")]'
-                                                       '/div[contains(@class, "infoBoxRowItem")]/text()').extract()[3].strip()
+      item['publisher'] = s.strip()
 
-            publication = response.selector.xpath('//div[@id = "details"]/div[contains(@class, "row")]/'
-                                                    'text()').extract()
+      months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+                'November', 'December']
+      found = False
+      pub_year = ''
 
-            splitted = []
-            for i in publication:
-                if 'Published' in i:
-                    splitted = i.split('\n')
+      for i in splitted:
+        for month in months:
+          if month in i:
+            pub_year = i
+            found = True
+            break
 
-            s = ''
-            for i in splitted:
-                if 'by' in i:
-                    string_split = i.strip().split(' ')
+        if found:
+          break
 
-            for i in string_split:
-                if not 'by' in i:
-                    s = s + i + ' '
-
-            item['publisher'] = s.strip()
-
-            months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
-                      'November', 'December']
-            found = False
-            pub_year = ''
-
-            for i in splitted:
-                for month in months:
-                    if month in i:
-                        pub_year = i
-                        found = True
-                        break
-
-                if found:
-                    break
-
-            item['year'] = pub_year.strip()
-
-            item['genres'] = response.selector.xpath('//div[contains(@class, "bigBoxContent containerWithHeaderContent")]'
-                                                     '/div[contains(@class, "elementList")]/div[contains(@class, "left")]'
-                                                     '/a/text()').extract()
-            genres = item['genres']
-            new_genres = list()
-            for val in genres:
-                new_genres.append(val.strip())
-            item['genres'] = new_genres
-
-            item['url'] = response.url
-
-            #print(item)
-            #print()
-            #print("-----------------------------------------------------------------------")
-            return item
+      item['year'] = pub_year.strip()
+      item['genres'] = response.selector.xpath('//div[contains(@class, "bigBoxContent containerWithHeaderContent")]'
+                                               '/div[contains(@class, "elementList")]/div[contains(@class, "left")]'
+                                               '/a/text()').extract()
+      genres = item['genres']
+      new_genres = list()
+      for val in genres:
+        new_genres.append(val.strip())
+      item['genres'] = new_genres
+      item['url'] = response.url
+      return item

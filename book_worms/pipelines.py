@@ -28,7 +28,7 @@ class FileWritePipeline(object):
             file_name = "amazon.csv"
 
         elif spider.name == 'goodreads':
-            file_name = "goodreads_1.csv"
+            file_name = "goodreads.csv"
 
         else:
             pass
@@ -39,14 +39,13 @@ class FileWritePipeline(object):
         for field in fields:
             value = item.get(field)
             if isinstance(value, list):
-                line += " ".join(value)
+                line += ";".join(value)
             else:
                 line += str(value)
 
             line += ','
 
         line += "\n"
-
         with open(file_name, 'a') as the_file:
             the_file.write(line)
         return item
@@ -63,7 +62,6 @@ class FileWritePipeline(object):
                     tmp_list.append(p_item)
                 processed_item[key] = tmp_list
             else:
-                print(val)
                 val = val.replace(",", ";")
                 processed_item[key] = val
 
